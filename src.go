@@ -50,7 +50,6 @@ func Simple(in []float32, ratio float64, channels int, converter Converter) ([]f
 	if len(in) == 0 {
 		return nil, nil
 	}
-	// TODO: TLS pool?
 	tls := libc.NewTLS()
 	defer tls.Close()
 	if ratio <= 0 {
@@ -72,7 +71,7 @@ func Simple(in []float32, ratio float64, channels int, converter Converter) ([]f
 	pin.Pin(&out[0])
 	srcData.Fdata_out = uintptr(unsafe.Pointer(&out[0]))
 	srcData.Finput_frames = int64(len(in) / channels)
-	srcData.Foutput_frames = int64(cap(out) / channels) // TODO: why cap?
+	srcData.Foutput_frames = int64(len(out) / channels)
 	srcData.Fsrc_ratio = ratio
 
 	r := libsamplerate.Xsrc_simple(tls, srcDataPtr, int32(converter), int32(channels))
