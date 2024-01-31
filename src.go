@@ -60,11 +60,9 @@ func Simple(in []float32, ratio float64, channels int, converter Converter) ([]f
 	pin := new(runtime.Pinner)
 	defer pin.Unpin()
 
-	srcDataPtr := libc.Xcalloc(tls, 1, libsamplerate.Tsize_t(unsafe.Sizeof(libsamplerate.TSRC_DATA{})))
-	defer libc.Xfree(tls, srcDataPtr)
-	// tools complain about this use of unsafe.Pointer,
-	// but libc.Xmalloc guarantees that it is fine.
-	srcData := (*libsamplerate.TSRC_DATA)(unsafe.Pointer(srcDataPtr))
+	srcDataPtr, srcData, freeData := allocSrcData(tls)
+	defer freeData()
+
 	// For pinning slices, see https://github.com/golang/go/issues/65286
 	pin.Pin(&in[0])
 	srcData.Fdata_in = uintptr(unsafe.Pointer(&in[0]))
@@ -131,4 +129,13 @@ func (e Error) Error() string {
 		return e.s + " (" + e.x + ")"
 	}
 	return e.s
+}
+
+func allocSrcData(tls *libc.TLS) (ptr uintptr, data *libsamplerate.TSRC_DATA, free func()) {
+	ptr = libc.Xcalloc(tls, 1, libsamplerate.Tsize_t(unsafe.Sizeof(libsamplerate.TSRC_DATA{})))
+	// tools complain about this use of unsafe.Pointer,
+	// but libc.Xmalloc guarantees that it is fine.
+	data = (*libsamplerate.TSRC_DATA)(unsafe.Pointer(ptr))
+	free = func() { libc.Xfree(tls, ptr) }
+	return ptr, data, free
 }
