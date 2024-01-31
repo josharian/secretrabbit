@@ -24,6 +24,29 @@ func TestGetConverterNameError(t *testing.T) {
 	}
 }
 
+func TestGetConverterDescription(t *testing.T) {
+	got := Linear.Description()
+	want := "Linear interpolator, very fast, poor quality."
+	if got != want {
+		t.Fatalf("got %q, want %q", got, want)
+	}
+}
+
+func TestGetConverterDescriptionError(t *testing.T) {
+	got := Converter(5).Description()
+	want := "unknown samplerate converter"
+	if got != want {
+		t.Fatalf("got %q, want %q", got, want)
+	}
+}
+
+func TestGetVersion(t *testing.T) {
+	version := Version()
+	if !strings.Contains(version, "libsamplerate-") {
+		t.Fatalf("got %q, want something containing %q", version, "libsamplerate-")
+	}
+}
+
 func TestSimple(t *testing.T) {
 	input := []float32{0.1, -0.5, 0.3, 0.4, 0.1}
 	expectedOutput := []float32{0.1, 0.1, -0.10000001, -0.5, 0.033333343, 0.33333334, 0.4, 0.2}

@@ -30,6 +30,22 @@ func (c Converter) String() string {
 	return libc.GoString(r)
 }
 
+func (c Converter) Description() string {
+	tls := libc.NewTLS()
+	defer tls.Close()
+	r := libsamplerate.Xsrc_get_description(tls, int32(c))
+	if r == 0 {
+		return "unknown samplerate converter"
+	}
+	return libc.GoString(r)
+}
+
+func Version() string {
+	tls := libc.NewTLS()
+	defer tls.Close()
+	return libc.GoString(libsamplerate.Xsrc_get_version(tls))
+}
+
 func Simple(in []float32, ratio float64, channels int, converter Converter) ([]float32, error) {
 	if len(in) == 0 {
 		return nil, nil
