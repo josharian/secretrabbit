@@ -1,6 +1,6 @@
 module github.com/josharian/secretrabbit
 
-go 1.21.6
+go 1.21
 
 require (
 	modernc.org/libc v1.40.8
