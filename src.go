@@ -46,7 +46,10 @@ func Version() string {
 	return libc.GoString(libsamplerate.Xsrc_get_version(tls))
 }
 
-func Simple(in []float32, ratio float64, channels int, converter Converter) ([]float32, error) {
+// Simple provides the simple interface to libsamplerate.
+// See http://www.mega-nerd.com/SRC/api_simple.html.
+// (In fact, it is even further simplified, in that you do not bring your own buffer.)
+func Simple(in []float32, ratio float64, channels int, conv Converter) ([]float32, error) {
 	if len(in) == 0 {
 		return nil, nil
 	}
@@ -72,7 +75,7 @@ func Simple(in []float32, ratio float64, channels int, converter Converter) ([]f
 	srcData.Foutput_frames = int64(len(out) / channels)
 	srcData.Fsrc_ratio = ratio
 
-	r := libsamplerate.Xsrc_simple(tls, srcDataPtr, int32(converter), int32(channels))
+	r := libsamplerate.Xsrc_simple(tls, srcDataPtr, int32(conv), int32(channels))
 	if r != libsamplerate.SRC_ERR_NO_ERROR {
 		return nil, asError(tls, r)
 	}
