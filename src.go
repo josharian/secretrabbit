@@ -82,6 +82,73 @@ func Simple(in []float32, ratio float64, channels int, conv Converter) ([]float3
 	return out[:srcData.Foutput_frames_gen*int64(channels)], nil
 }
 
+// A Full encapsulates a full samplerate converter.
+// See http://www.mega-nerd.com/SRC/api_full.html.
+type Full struct {
+	state    uintptr
+	channels int
+}
+
+func New(conv Converter, channels int) (*Full, error) {
+	tls := libc.NewTLS()
+	defer tls.Close()
+	pin := new(runtime.Pinner)
+	defer pin.Unpin()
+	var errno int32
+	pin.Pin(&errno)
+	state := libsamplerate.Xsrc_new(tls, int32(conv), int32(channels), uintptr(unsafe.Pointer(&errno)))
+	if state == 0 {
+		return nil, asErrorf(tls, errno, "Converter=%v, channels=%v", conv, channels)
+	}
+	return &Full{state: state, channels: channels}, nil
+}
+
+// Process resamples in to out, with the given ratio.
+// It returns the number of frames consumed from in and written to out.
+// If eof is true, in is the final input.
+func (f *Full) Process(in, out []float32, ratio float64, eof bool) (int, int, error) {
+	tls := libc.NewTLS()
+	defer tls.Close()
+	if f.state == 0 {
+		return 0, 0, asError(tls, int32(ErrBadState))
+	}
+
+	srcDataPtr, srcData, freeData := allocSrcData(tls)
+	defer freeData()
+
+	pin := new(runtime.Pinner)
+	defer pin.Unpin()
+
+	// For pinning slices, see https://github.com/golang/go/issues/65286
+	pin.Pin(&in[0])
+	srcData.Fdata_in = uintptr(unsafe.Pointer(&in[0]))
+	pin.Pin(&out[0])
+	srcData.Fdata_out = uintptr(unsafe.Pointer(&out[0]))
+	srcData.Finput_frames = int64(len(in) / f.channels)
+	srcData.Foutput_frames = int64(len(out) / f.channels)
+	srcData.Fsrc_ratio = ratio
+	if eof {
+		srcData.Fend_of_input = 1
+	}
+	r := libsamplerate.Xsrc_process(tls, f.state, srcDataPtr)
+
+	if r != libsamplerate.SRC_ERR_NO_ERROR {
+		return 0, 0, asError(tls, r)
+	}
+
+	return int(srcData.Finput_frames_used), int(srcData.Foutput_frames_gen), nil
+}
+
+func (f *Full) Close() {
+	if f.state == 0 {
+		return
+	}
+	tls := libc.NewTLS()
+	defer tls.Close()
+	libsamplerate.Xsrc_delete(tls, f.state)
+	f.state = 0
+}
+
 type ErrorCode int
 
 const (

@@ -111,3 +111,72 @@ func closeEnough(a, b []float32) bool {
 	}
 	return true
 }
+
+func TestFullNewClose(t *testing.T) {
+	src, err := New(SincFastest, 2)
+	if err != nil {
+		t.Fatal(err)
+	}
+	src.Close()
+	src.Close() // second close should not panic
+}
+
+func TestInvalidSrcObject(t *testing.T) {
+	_, err := New(invalidConverter, 2)
+	want := "Bad converter number"
+	if !strings.Contains(err.Error(), want) {
+		t.Fatalf("got %q, want something containing %q", err.Error(), want)
+	}
+}
+
+func TestProcessWithEndOfInputFlagSet(t *testing.T) {
+	nChannels := 2
+	src, err := New(SincFastest, nChannels)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer src.Close()
+
+	in := []float32{0.1, -0.5, 0.2, -0.3}
+	out := make([]float32, 10)
+	nIn, nOut, err := src.Process(in, out, 2.0, true)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if want := len(in) / nChannels; want != nIn {
+		t.Fatalf("consumed %d frames, want %d", nIn, want)
+	}
+	if want := 4; want != nOut {
+		t.Fatalf("wrote %d frames, want %d", nOut, want)
+	}
+	out = out[:nOut*nChannels]
+	wantOut := []float32{
+		0.11488709,
+		-0.46334597, 0.18373828, -0.48996875, 0.1821644,
+		-0.32879135, 0.10804618, -0.11150829,
+	}
+
+	if !reflect.DeepEqual(out, wantOut) {
+		t.Log("input:", in)
+		t.Log("output:", out)
+		t.Logf("expected output: %v", wantOut)
+		t.Fatal("unexpected output")
+	}
+}
+
+func TestProcessErrorWithInvalidRatio(t *testing.T) {
+	src, err := New(Linear, 1)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer src.Close()
+
+	in := make([]float32, 100)
+	out := make([]float32, 100)
+	_, _, err = src.Process(in, out, -5, true)
+	got := err.Error()
+	want := "SRC ratio outside [1/256, 256] range."
+	if !strings.Contains(got, want) {
+		t.Fatalf("got %q, want something containing %q", got, want)
+	}
+}
