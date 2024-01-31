@@ -20,6 +20,16 @@ const (
 	Linear            = Converter(libsamplerate.SRC_LINEAR)
 )
 
+func (c Converter) String() string {
+	tls := libc.NewTLS()
+	defer tls.Close()
+	r := libsamplerate.Xsrc_get_name(tls, int32(c))
+	if r == 0 {
+		return "unknown samplerate converter"
+	}
+	return libc.GoString(r)
+}
+
 func Simple(in []float32, ratio float64, channels int, converter Converter) ([]float32, error) {
 	if len(in) == 0 {
 		return nil, nil

@@ -6,7 +6,24 @@ import (
 	"testing"
 )
 
-// Tests borrowed/adapted from https://github.com/dh1tw/gosamplerate
+// Most tests borrowed/adapted from https://github.com/dh1tw/gosamplerate
+
+func TestGetConverterName(t *testing.T) {
+	got := Linear.String()
+	want := "Linear Interpolator"
+	if got != want {
+		t.Fatalf("got %q, want %q", got, want)
+	}
+}
+
+func TestGetConverterNameError(t *testing.T) {
+	got := Converter(5).String()
+	want := "unknown samplerate converter"
+	if got != want {
+		t.Fatalf("got %q, want %q", got, want)
+	}
+}
+
 func TestSimple(t *testing.T) {
 	input := []float32{0.1, -0.5, 0.3, 0.4, 0.1}
 	expectedOutput := []float32{0.1, 0.1, -0.10000001, -0.5, 0.033333343, 0.33333334, 0.4, 0.2}
