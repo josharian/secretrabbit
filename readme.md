@@ -6,7 +6,7 @@ So far, only the [simple](http://libsndfile.github.io/libsamplerate/api_simple.h
 
 ### Status
 
-Partial coverage. Ready to use.
+Partial coverage. API is not stable yet. Otherwise ready to use.
 
 ### Acknowledgement
 
