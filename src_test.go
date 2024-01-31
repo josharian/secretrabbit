@@ -8,6 +8,8 @@ import (
 
 // Most tests borrowed/adapted from https://github.com/dh1tw/gosamplerate
 
+var invalidConverter = Converter(5)
+
 func TestGetConverterName(t *testing.T) {
 	got := Linear.String()
 	want := "Linear Interpolator"
@@ -17,8 +19,8 @@ func TestGetConverterName(t *testing.T) {
 }
 
 func TestGetConverterNameError(t *testing.T) {
-	got := Converter(5).String()
-	want := "unknown samplerate converter"
+	got := invalidConverter.String()
+	want := "unknown samplerate converter (5)"
 	if got != want {
 		t.Fatalf("got %q, want %q", got, want)
 	}
@@ -33,7 +35,7 @@ func TestGetConverterDescription(t *testing.T) {
 }
 
 func TestGetConverterDescriptionError(t *testing.T) {
-	got := Converter(5).Description()
+	got := invalidConverter.Description()
 	want := "unknown samplerate converter"
 	if got != want {
 		t.Fatalf("got %q, want %q", got, want)

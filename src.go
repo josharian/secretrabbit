@@ -25,7 +25,7 @@ func (c Converter) String() string {
 	defer tls.Close()
 	r := libsamplerate.Xsrc_get_name(tls, int32(c))
 	if r == 0 {
-		return "unknown samplerate converter"
+		return fmt.Sprintf("unknown samplerate converter (%d)", c)
 	}
 	return libc.GoString(r)
 }
