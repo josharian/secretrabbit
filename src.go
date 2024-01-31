@@ -56,35 +56,35 @@ func Simple(in []float32, ratio float64, channels int, converter Converter) ([]f
 	return out[:srcData.Foutput_frames_gen*int64(channels)], nil
 }
 
-type Errno int
+type ErrorCode int
 
 const (
-	ErrMallocFailed          = Errno(libsamplerate.SRC_ERR_MALLOC_FAILED)
-	ErrBadState              = Errno(libsamplerate.SRC_ERR_BAD_STATE)
-	ErrBadData               = Errno(libsamplerate.SRC_ERR_BAD_DATA)
-	ErrBadDataPtr            = Errno(libsamplerate.SRC_ERR_BAD_DATA_PTR)
-	ErrNoPrivate             = Errno(libsamplerate.SRC_ERR_NO_PRIVATE)
-	ErrBadSrcRatio           = Errno(libsamplerate.SRC_ERR_BAD_SRC_RATIO)
-	ErrBadProcPtr            = Errno(libsamplerate.SRC_ERR_BAD_PROC_PTR)
-	ErrShiftBits             = Errno(libsamplerate.SRC_ERR_SHIFT_BITS)
-	ErrFilterLen             = Errno(libsamplerate.SRC_ERR_FILTER_LEN)
-	ErrBadConverter          = Errno(libsamplerate.SRC_ERR_BAD_CONVERTER)
-	ErrBadChannelCount       = Errno(libsamplerate.SRC_ERR_BAD_CHANNEL_COUNT)
-	ErrSincBadBufferLen      = Errno(libsamplerate.SRC_ERR_SINC_BAD_BUFFER_LEN)
-	ErrSizeIncompatibility   = Errno(libsamplerate.SRC_ERR_SIZE_INCOMPATIBILITY)
-	ErrBadPrivPtr            = Errno(libsamplerate.SRC_ERR_BAD_PRIV_PTR)
-	ErrBadSincState          = Errno(libsamplerate.SRC_ERR_BAD_SINC_STATE)
-	ErrDataOverlap           = Errno(libsamplerate.SRC_ERR_DATA_OVERLAP)
-	ErrBadCallback           = Errno(libsamplerate.SRC_ERR_BAD_CALLBACK)
-	ErrBadMode               = Errno(libsamplerate.SRC_ERR_BAD_MODE)
-	ErrNullCallback          = Errno(libsamplerate.SRC_ERR_NULL_CALLBACK)
-	ErrNoVariableRatio       = Errno(libsamplerate.SRC_ERR_NO_VARIABLE_RATIO)
-	ErrSincPrepareDataBadLen = Errno(libsamplerate.SRC_ERR_SINC_PREPARE_DATA_BAD_LEN)
-	ErrBadInternalState      = Errno(libsamplerate.SRC_ERR_BAD_INTERNAL_STATE)
+	ErrMallocFailed          = ErrorCode(libsamplerate.SRC_ERR_MALLOC_FAILED)
+	ErrBadState              = ErrorCode(libsamplerate.SRC_ERR_BAD_STATE)
+	ErrBadData               = ErrorCode(libsamplerate.SRC_ERR_BAD_DATA)
+	ErrBadDataPtr            = ErrorCode(libsamplerate.SRC_ERR_BAD_DATA_PTR)
+	ErrNoPrivate             = ErrorCode(libsamplerate.SRC_ERR_NO_PRIVATE)
+	ErrBadSrcRatio           = ErrorCode(libsamplerate.SRC_ERR_BAD_SRC_RATIO)
+	ErrBadProcPtr            = ErrorCode(libsamplerate.SRC_ERR_BAD_PROC_PTR)
+	ErrShiftBits             = ErrorCode(libsamplerate.SRC_ERR_SHIFT_BITS)
+	ErrFilterLen             = ErrorCode(libsamplerate.SRC_ERR_FILTER_LEN)
+	ErrBadConverter          = ErrorCode(libsamplerate.SRC_ERR_BAD_CONVERTER)
+	ErrBadChannelCount       = ErrorCode(libsamplerate.SRC_ERR_BAD_CHANNEL_COUNT)
+	ErrSincBadBufferLen      = ErrorCode(libsamplerate.SRC_ERR_SINC_BAD_BUFFER_LEN)
+	ErrSizeIncompatibility   = ErrorCode(libsamplerate.SRC_ERR_SIZE_INCOMPATIBILITY)
+	ErrBadPrivPtr            = ErrorCode(libsamplerate.SRC_ERR_BAD_PRIV_PTR)
+	ErrBadSincState          = ErrorCode(libsamplerate.SRC_ERR_BAD_SINC_STATE)
+	ErrDataOverlap           = ErrorCode(libsamplerate.SRC_ERR_DATA_OVERLAP)
+	ErrBadCallback           = ErrorCode(libsamplerate.SRC_ERR_BAD_CALLBACK)
+	ErrBadMode               = ErrorCode(libsamplerate.SRC_ERR_BAD_MODE)
+	ErrNullCallback          = ErrorCode(libsamplerate.SRC_ERR_NULL_CALLBACK)
+	ErrNoVariableRatio       = ErrorCode(libsamplerate.SRC_ERR_NO_VARIABLE_RATIO)
+	ErrSincPrepareDataBadLen = ErrorCode(libsamplerate.SRC_ERR_SINC_PREPARE_DATA_BAD_LEN)
+	ErrBadInternalState      = ErrorCode(libsamplerate.SRC_ERR_BAD_INTERNAL_STATE)
 )
 
 type Error struct {
-	Errno Errno
+	ErrorCode ErrorCode
 	// TODO: consider re-exporting all these constants? :up_arrow:
 	s string // eagerly initialized because requires a TLS
 	x string // extra context
@@ -98,7 +98,7 @@ func asErrorf(tls *libc.TLS, r int32, msg string, args ...any) Error {
 
 func asError(tls *libc.TLS, r int32) Error {
 	s := libc.GoString(libsamplerate.Xsrc_strerror(tls, int32(r)))
-	return Error{Errno: Errno(r), s: s}
+	return Error{ErrorCode: ErrorCode(r), s: s}
 }
 
 func (e Error) Error() string {
